@@ -109,26 +109,36 @@ namespace dropout_dl {
 			ep.download(quality, dir);
 		}
 	}
-	void season::list_episodes(const std::string& url, const cookie& session_cookie) {
+	std::string season::decode_unicode_escapes(const std::string& s_in) {
+		std::string s = s_in;
+		for (auto&& [esc, ch] : std::initializer_list<std::pair<std::string,std::string>>{
+			{"\\u0026","&"},{"\\u0027","'"},{"\\u003c","<"},{"\\u003e",">"}
+		}) {
+			for (size_t p = 0; (p = s.find(esc, p)) != std::string::npos;)
+				s.replace(p, esc.size(), ch);
+		}
+		return s;
+	}
+
+	std::vector<std::pair<std::string,std::string>> season::parse_episode_list(const std::string& page_data) {
 		const std::string site_video(R"(class="browse-item-link" data-track-event="site_video")");
 		const std::string label_key("&quot;label&quot;:&quot;");
 		const std::string label_end("&quot;");
+		std::vector<std::pair<std::string,std::string>> result;
 
-		auto list_from_page = [&](const std::string& page_data) {
-			for (int i = 0; i < (int)page_data.size(); i++) {
-				if (substr_is(page_data, i, site_video)) {
-					std::string title;
-					for (int j = i; j < (int)page_data.size() && page_data[j] != '>'; j++) {
-						if (substr_is(page_data, j, label_key)) {
-							j += (int)label_key.size();
-							for (int k = 0; j + k < (int)page_data.size(); k++) {
-								if (substr_is(page_data, j + k, label_end)) {
-									title = page_data.substr(j, k);
-									break;
-								}
+		for (int i = 0; i < (int)page_data.size(); i++) {
+			if (substr_is(page_data, i, site_video)) {
+				std::string title;
+				for (int j = i; j < (int)page_data.size() && page_data[j] != '>'; j++) {
+					if (substr_is(page_data, j, label_key)) {
+						j += (int)label_key.size();
+						for (int k = 0; j + k < (int)page_data.size(); k++) {
+							if (substr_is(page_data, j + k, label_end)) {
+								title = page_data.substr(j, k);
+								break;
 							}
-							break;
 						}
+<<<<<<< Updated upstream
 					}
 
 					std::string ep_url;
@@ -152,8 +162,43 @@ namespace dropout_dl {
 
 					if (!title.empty() && !ep_url.empty()) {
 						std::cout << title << "\t" << ep_url << "\n";
+=======
+						break;
+>>>>>>> Stashed changes
 					}
 				}
+
+				std::string ep_url;
+				for (int j = i; j > 0; j--) {
+					if (substr_is(page_data, j, "<a")) {
+						for (int k = j; k < i + (int)site_video.size(); k++) {
+							if (substr_is(page_data, k, "href=\"")) {
+								k += 6;
+								for (int l = 0; k + l < (int)page_data.size(); l++) {
+									if (page_data[k + l] == '"') {
+										ep_url = page_data.substr(k, l);
+										break;
+									}
+								}
+								break;
+							}
+						}
+						break;
+					}
+				}
+
+				if (!title.empty() && !ep_url.empty()) {
+					result.emplace_back(decode_unicode_escapes(title), ep_url);
+				}
+			}
+		}
+		return result;
+	}
+
+	void season::list_episodes(const std::string& url, const cookie& session_cookie) {
+		auto list_from_page = [](const std::string& page_data) {
+			for (const auto& [title, ep_url] : season::parse_episode_list(page_data)) {
+				std::cout << title << "\t" << ep_url << "\n";
 			}
 		};
 
