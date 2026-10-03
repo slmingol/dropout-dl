@@ -1,6 +1,6 @@
 services:
   dropout-dl:
-    image: ghcr.io/slmingol/dropout-dl:main
+    image: ghcr.io/slmingol/dropout-dl:overlay
     pull_policy: always
     volumes:
       - ./downloads:/downloads

@@ -18,10 +18,10 @@
 # Installation
 ## GHCR (recommended)
 
-Pre-built images are published to GitHub Container Registry on every push to `main`.
+Pre-built images are published to GitHub Container Registry on every push to `overlay`.
 
 ```shell
-docker pull ghcr.io/slmingol/dropout-dl:main
+docker pull ghcr.io/slmingol/dropout-dl:overlay
 ```
 
 Clone the repo and use the Makefile to drive everything — no local build required:
@@ -79,7 +79,7 @@ make series SHOW=um-actually
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `IMAGE`   | `ghcr.io/slmingol/dropout-dl:main` | Docker image to use |
+| `IMAGE`   | `ghcr.io/slmingol/dropout-dl:overlay` | Docker image to use |
 | `QUALITY` | `720p` | Video quality (`360p` `480p` `720p` `1080p`) |
 | `OUT`     | `./out` | Output directory on host |
 | `LOGIN`   | `./login` | Path to login credentials file |

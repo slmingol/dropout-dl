@@ -7,7 +7,7 @@ MAGENTA := \033[0;35m
 BOLD   := \033[1m
 RESET  := \033[0m
 
-IMAGE   ?= ghcr.io/slmingol/dropout-dl:main
+IMAGE   ?= ghcr.io/slmingol/dropout-dl:overlay
 QUALITY ?= 720p
 OUT     ?= $(PWD)/out
 LOGIN   ?= $(PWD)/login
@@ -150,17 +150,22 @@ endif
 	@$(_RUN) -S "$(_SHOW_URL)"
 
 sync:
-	@printf "$(BLUE)>>$(RESET) Syncing from $(shell git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo 'tracked remote')...\n"
-	@git pull --rebase
+	@printf "$(BLUE)>>$(RESET) Syncing overlay from origin...\n"
+	@git checkout overlay 2>/dev/null || true
+	@git pull --rebase origin overlay
 	@printf "$(GREEN)✓$(RESET) Up to date\n"
 
 sync-upstream:
-	@printf "$(BLUE)>>$(RESET) Pulling upstream (mosswg) into fork...\n"
+	@printf "$(BLUE)>>$(RESET) Pulling upstream (mosswg) into main, rebasing overlay...\n"
 	@git remote get-url upstream 2>/dev/null || git remote add upstream $(UPSTREAM)
 	@git fetch upstream
+	@git checkout main
 	@git rebase upstream/main
 	@git push origin main
-	@printf "$(GREEN)✓$(RESET) Fork synced with upstream\n"
+	@git checkout overlay
+	@git rebase main
+	@git push origin overlay
+	@printf "$(GREEN)✓$(RESET) main and overlay synced with upstream\n"
 
 list-shows:
 	@printf "$(BLUE)>>$(RESET) Shows on dropout.tv\n\n"
