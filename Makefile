@@ -150,9 +150,11 @@ endif
 	@$(_RUN) -S "$(_SHOW_URL)"
 
 sync:
-	@printf "$(BLUE)>>$(RESET) Syncing overlay from origin...\n"
-	@git checkout overlay 2>/dev/null || true
-	@git pull --rebase origin overlay
+	@printf "$(BLUE)>>$(RESET) Syncing overlay from $(shell git remote get-url fork 2>/dev/null && echo fork || echo origin)...\n"
+	@remote=$$(git remote get-url fork 2>/dev/null && echo fork || echo origin); \
+	 git fetch $$remote; \
+	 git checkout overlay 2>/dev/null || git checkout -b overlay $$remote/overlay; \
+	 git rebase $$remote/overlay
 	@printf "$(GREEN)✓$(RESET) Up to date\n"
 
 sync-upstream:
