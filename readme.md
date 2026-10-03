@@ -3,10 +3,12 @@
 </div>
 
 * [Installation](#installation)
-  * [Docker](#docker)
+  * [GHCR (recommended)](#ghcr-recommended)
+  * [Docker (build locally)](#docker-build-locally)
   * [How to Build](#how-to-build)
   * [Dependencies](#Dependencies)
 * [Usage](#how-to-use)
+  * [Makefile (quick start)](#makefile-quick-start)
   * [Options](#options)
   * [Login](#login)
   * [Cookies](#cookies)
@@ -14,18 +16,87 @@
 
 
 # Installation
-## Docker
-A docker image was created that makes it easier to build and use dropout-dl. You can simply build the docker image without worrying about installing any system dependencies:
-```shell
-docker build -t dropout-dl:latest .
-```
-After its done building, you can use it by adding your arguments to the end of the `docker run` command:
-```shell
-docker run --rm -it -v $PWD/login:/app/login -v $PWD/out:/Downloads dropout-dl:latest --output-directory /Downloads --captions -e https://www.dropout.tv/dimension-20/season:10/videos/the-chosen-ones
-```
-**Note:** The docker image expects the `login` file to be at `/app/login`.\
-You must specify an output directory and mount that directory to the host so that you can retrieve the files from the docker container. In the above command I tell dropout-dl to output everything in `/Downloads` inside the container, which is mounted to a folder named `out` inside the current directory (`$PWD` is current directory).
+## GHCR (recommended)
 
+Pre-built images are published to GitHub Container Registry on every push to `main`.
+
+```shell
+docker pull ghcr.io/slmingol/dropout-dl:main
+```
+
+Clone the repo and use the Makefile to drive everything — no local build required:
+
+```shell
+git clone https://github.com/slmingol/dropout-dl
+cd dropout-dl
+make pull          # pull latest image
+```
+
+## Docker (build locally)
+
+Build the image yourself if you need local changes:
+
+```shell
+docker build -t dropout-dl:local .
+# or via Makefile:
+make build
+```
+
+## How to Use
+### Makefile quick start
+
+The `Makefile` wraps the container and constructs dropout.tv URLs from simple variables — no need to type full URLs.
+
+**1. Create a `login` file** (email on line 1, password on line 2):
+```
+email@example.com
+password123
+```
+
+**2. Browse then download:**
+```shell
+# List all shows on dropout.tv
+make list-shows
+
+# List all seasons for a show
+make list-seasons SHOW=crowd-control
+
+# List all episodes in a season (prints title + URL, tab-separated)
+make list-episodes SHOW=crowd-control SEASON=2
+
+# Download one episode by number or by slug
+make episode SHOW=crowd-control SEASON=2 EPISODE=3
+make episode SHOW=crowd-control SEASON=2 EPISODE=hal-rose-said-to-watch-this-episode
+
+# Download a full season
+make season SHOW=crowd-control SEASON=2
+
+# Download an entire series
+make series SHOW=um-actually
+```
+
+**Variables** (all overridable):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `IMAGE`   | `ghcr.io/slmingol/dropout-dl:main` | Docker image to use |
+| `QUALITY` | `720p` | Video quality (`360p` `480p` `720p` `1080p`) |
+| `OUT`     | `./out` | Output directory on host |
+| `LOGIN`   | `./login` | Path to login credentials file |
+| `PREFIX`  | _(unset)_ | Set to `1` to prepend `S##E##_` to output filenames |
+
+```shell
+make season SHOW=dropout-mbmbam SEASON=1 QUALITY=1080p OUT=/volume2/data
+
+# Prepend S##E## prefix to downloaded filename
+make episode SHOW=smartypants SEASON=3 EPISODE=2 PREFIX=1
+# → out/S03E02_Smartypants - Smartyshorts Nice to Meet You.mp4
+```
+
+Run `make help` for a full reference.
+
+---
+>
 ## Submodule
 This repository uses [a json library](https://github.com/nlohmann/json/). Either clone the repository with the `--recurse-submodules` flag or after cloning run:
 ```
