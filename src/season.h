@@ -64,6 +64,8 @@ namespace dropout_dl {
 			 */
 			 static int get_season_number(const std::string& url);
 
+			static void list_episodes(const std::string& url, const cookie& session_cookie);
+
 			/**
 			 *
 			 * @param quality - The quality of the videos

@@ -109,4 +109,65 @@ namespace dropout_dl {
 			ep.download(quality, dir);
 		}
 	}
+	void season::list_episodes(const std::string& url, const cookie& session_cookie) {
+		const std::string site_video(R"(class="browse-item-link" data-track-event="site_video")");
+		const std::string label_key("&quot;label&quot;:&quot;");
+		const std::string label_end("&quot;");
+
+		auto list_from_page = [&](const std::string& page_data) {
+			for (int i = 0; i < (int)page_data.size(); i++) {
+				if (substr_is(page_data, i, site_video)) {
+					std::string title;
+					for (int j = i; j < (int)page_data.size() && page_data[j] != '>'; j++) {
+						if (substr_is(page_data, j, label_key)) {
+							j += (int)label_key.size();
+							for (int k = 0; j + k < (int)page_data.size(); k++) {
+								if (substr_is(page_data, j + k, label_end)) {
+									title = page_data.substr(j, k);
+									break;
+								}
+							}
+							break;
+						}
+					}
+
+					std::string ep_url;
+					for (int j = i; j > 0; j--) {
+						if (substr_is(page_data, j, "<a")) {
+							for (int k = j; k < i + (int)site_video.size(); k++) {
+								if (substr_is(page_data, k, "href=\"")) {
+									k += 6;
+									for (int l = 0; k + l < (int)page_data.size(); l++) {
+										if (page_data[k + l] == '"') {
+											ep_url = page_data.substr(k, l);
+											break;
+										}
+									}
+									break;
+								}
+							}
+							break;
+						}
+					}
+
+					if (!title.empty() && !ep_url.empty()) {
+						std::cout << title << "\t" << ep_url << "\n";
+					}
+				}
+			}
+		};
+
+		std::string page_data = get_generic_page(url, url);
+		list_from_page(page_data);
+
+		long status_code = -1;
+		int page_index = 2;
+		while (true) {
+			std::string next_url = url + "?page=" + std::to_string(page_index);
+			std::string next_page = get_generic_page(next_url, url, &status_code);
+			if (status_code != 200) break;
+			list_from_page(next_page);
+			page_index++;
+		}
+	}
 } // dropout_dl
