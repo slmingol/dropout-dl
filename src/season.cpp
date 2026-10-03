@@ -138,33 +138,7 @@ namespace dropout_dl {
 								break;
 							}
 						}
-<<<<<<< Updated upstream
-					}
-
-					std::string ep_url;
-					for (int j = i; j > 0; j--) {
-						if (substr_is(page_data, j, "<a")) {
-							for (int k = j; k < i + (int)site_video.size(); k++) {
-								if (substr_is(page_data, k, "href=\"")) {
-									k += 6;
-									for (int l = 0; k + l < (int)page_data.size(); l++) {
-										if (page_data[k + l] == '"') {
-											ep_url = page_data.substr(k, l);
-											break;
-										}
-									}
-									break;
-								}
-							}
-							break;
-						}
-					}
-
-					if (!title.empty() && !ep_url.empty()) {
-						std::cout << title << "\t" << ep_url << "\n";
-=======
 						break;
->>>>>>> Stashed changes
 					}
 				}
 
