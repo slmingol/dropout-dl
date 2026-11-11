@@ -1,11 +1,11 @@
-RED     := $(shell printf '\033[0;31m')
-GREEN   := $(shell printf '\033[0;32m')
-YELLOW  := $(shell printf '\033[1;33m')
-BLUE    := $(shell printf '\033[0;34m')
-CYAN    := $(shell printf '\033[0;36m')
-MAGENTA := $(shell printf '\033[0;35m')
-BOLD    := $(shell printf '\033[1m')
-RESET   := $(shell printf '\033[0m')
+RED     := $(shell tput setaf 1 2>/dev/null)
+GREEN   := $(shell tput setaf 2 2>/dev/null)
+YELLOW  := $(shell tput setaf 3 2>/dev/null)
+BLUE    := $(shell tput setaf 4 2>/dev/null)
+CYAN    := $(shell tput setaf 6 2>/dev/null)
+MAGENTA := $(shell tput setaf 5 2>/dev/null)
+BOLD    := $(shell tput bold 2>/dev/null)
+RESET   := $(shell tput sgr0 2>/dev/null)
 
 IMAGE   ?= ghcr.io/slmingol/dropout-dl:overlay
 QUALITY ?= 720p
