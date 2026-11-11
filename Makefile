@@ -14,6 +14,7 @@ LOGIN   ?= $(PWD)/login
 SESSION ?= $(PWD)/session
 PREFIX  ?=
 COOKIE  ?= $(shell test -f $(SESSION) && cat $(SESSION) || true)
+DOCKER  ?= $(shell command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo docker)
 
 # Default Firefox profile detection (macOS) — pick whichever profile has cookies.sqlite
 FIREFOX_PROFILE ?= $(shell find "$(HOME)/Library/Application Support/Firefox/Profiles" -maxdepth 2 -name "cookies.sqlite" 2>/dev/null | head -1 | sed 's|/[^/]*$$||')
@@ -27,7 +28,7 @@ _EPISODE_URL = $(BASE)/$(SHOW)/season:$(SEASON)/videos/$(EPISODE)
 # If COOKIE is set, use --force-cookies instead of the login file
 _COOKIE_FLAG = $(if $(COOKIE),--force-cookies $(COOKIE),)
 
-_RUN = docker run --rm -it \
+_RUN = $(DOCKER) run --rm -it \
 	$(if $(COOKIE),,\-v $(LOGIN):/app/login) \
 	-v $(OUT):/Downloads \
 	$(IMAGE) \
@@ -36,7 +37,7 @@ _RUN = docker run --rm -it \
 	--captions \
 	--quality $(QUALITY)
 
-_LIST = docker run --rm -i \
+_LIST = $(DOCKER) run --rm -i \
 	$(if $(COOKIE),,\-v $(LOGIN):/app/login) \
 	$(IMAGE) \
 	$(_COOKIE_FLAG)
@@ -82,17 +83,17 @@ help:
 
 pull:
 	@echo "$(BLUE)>>$(RESET) Pulling $(CYAN)$(IMAGE)$(RESET)..."
-	@docker pull $(IMAGE)
+	@$(DOCKER) pull $(IMAGE)
 	@echo "$(GREEN)✓$(RESET) Done"
 
 build:
 	@echo "$(BLUE)>>$(RESET) Building local image..."
-	@docker build -t dropout-dl:local .
+	@$(DOCKER) build -t dropout-dl:local .
 	@echo "$(GREEN)✓$(RESET) Built $(CYAN)dropout-dl:local$(RESET)"
 
 clean:
 	@echo "$(RED)>>$(RESET) Removing $(CYAN)dropout-dl:local$(RESET)..."
-	@docker rmi dropout-dl:local 2>/dev/null || true
+	@$(DOCKER) rmi dropout-dl:local 2>/dev/null || true
 	@echo "$(GREEN)✓$(RESET) Done"
 
 get-session:
