@@ -46,89 +46,89 @@ UPSTREAM ?= https://github.com/mosswg/dropout-dl
 .PHONY: help pull build episode season series list-shows list-seasons list-episodes sync sync-upstream clean get-session
 
 help:
-	@printf "$(BOLD)$(CYAN)dropout-dl$(RESET) — dropout.tv downloader\n\n"
-	@printf "$(BOLD)Download:$(RESET)\n"
-	@printf "  $(GREEN)make episode$(RESET)       $(YELLOW)SHOW=<slug> SEASON=<n> EPISODE=<slug>$(RESET)\n"
-	@printf "  $(GREEN)make season$(RESET)        $(YELLOW)SHOW=<slug> SEASON=<n>$(RESET)\n"
-	@printf "  $(GREEN)make series$(RESET)        $(YELLOW)SHOW=<slug>$(RESET)\n"
-	@printf "\n$(BOLD)Browse:$(RESET)\n"
-	@printf "  $(GREEN)make list-shows$(RESET)                                List all shows\n"
-	@printf "  $(GREEN)make list-seasons$(RESET)  $(YELLOW)SHOW=<slug>$(RESET)                 List all seasons\n"
-	@printf "  $(GREEN)make list-episodes$(RESET) $(YELLOW)SHOW=<slug> SEASON=<n>$(RESET)      List all episodes\n"
-	@printf "\n$(BOLD)Git:$(RESET)\n"
-	@printf "  $(GREEN)make sync$(RESET)             Pull latest from fork\n"
-	@printf "  $(GREEN)make sync-upstream$(RESET)    Pull upstream (mosswg) changes into fork\n"
-	@printf "\n$(BOLD)Session:$(RESET)\n"
-	@printf "  $(GREEN)make get-session$(RESET)   Extract _session cookie from Firefox → saves to $(SESSION)\n"
-	@printf "                     Requires: log into watch.dropout.tv + pick a profile in Firefox\n"
-	@printf "\n$(BOLD)Image:$(RESET)\n"
-	@printf "  $(GREEN)make pull$(RESET)    Pull latest image from GHCR\n"
-	@printf "  $(GREEN)make build$(RESET)   Build local image from source\n"
-	@printf "  $(GREEN)make clean$(RESET)   Remove local image\n"
-	@printf "\n$(BOLD)Variables:$(RESET)\n"
-	@printf "  $(CYAN)IMAGE$(RESET)    = $(IMAGE)\n"
-	@printf "  $(CYAN)QUALITY$(RESET)  = $(QUALITY)  (360p 480p 720p 1080p)\n"
-	@printf "  $(CYAN)OUT$(RESET)      = $(OUT)\n"
-	@printf "  $(CYAN)LOGIN$(RESET)    = $(LOGIN)\n"
-	@printf "  $(CYAN)SESSION$(RESET)  = $(SESSION)  (auto-read as COOKIE when present)\n"
-	@printf "  $(CYAN)PREFIX$(RESET)   = $(if $(PREFIX),$(PREFIX),(unset))  set to 1 to prefix filenames with S##E##\n"
-	@printf "\n$(BOLD)Example workflow:$(RESET)\n"
-	@printf "  make list-shows\n"
-	@printf "  make list-seasons  SHOW=crowd-control\n"
-	@printf "  make list-episodes SHOW=crowd-control SEASON=2\n"
-	@printf "  make episode       SHOW=crowd-control SEASON=2 EPISODE=3\n"
-	@printf "  make episode       SHOW=crowd-control SEASON=2 EPISODE=3 PREFIX=1\n"
-	@printf "  make season        SHOW=crowd-control SEASON=2 QUALITY=1080p\n\n"
+	@echo "$(BOLD)$(CYAN)dropout-dl$(RESET) — dropout.tv downloader"; echo
+	@echo "$(BOLD)Download:$(RESET)"
+	@echo "  $(GREEN)make episode$(RESET)       $(YELLOW)SHOW=<slug> SEASON=<n> EPISODE=<slug>$(RESET)"
+	@echo "  $(GREEN)make season$(RESET)        $(YELLOW)SHOW=<slug> SEASON=<n>$(RESET)"
+	@echo "  $(GREEN)make series$(RESET)        $(YELLOW)SHOW=<slug>$(RESET)"
+	@echo ""; echo "$(BOLD)Browse:$(RESET)"
+	@echo "  $(GREEN)make list-shows$(RESET)                                List all shows"
+	@echo "  $(GREEN)make list-seasons$(RESET)  $(YELLOW)SHOW=<slug>$(RESET)                 List all seasons"
+	@echo "  $(GREEN)make list-episodes$(RESET) $(YELLOW)SHOW=<slug> SEASON=<n>$(RESET)      List all episodes"
+	@echo ""; echo "$(BOLD)Git:$(RESET)"
+	@echo "  $(GREEN)make sync$(RESET)             Pull latest from fork"
+	@echo "  $(GREEN)make sync-upstream$(RESET)    Pull upstream (mosswg) changes into fork"
+	@echo ""; echo "$(BOLD)Session:$(RESET)"
+	@echo "  $(GREEN)make get-session$(RESET)   Extract _session cookie from Firefox -> saves to $(SESSION)"
+	@echo "                     Requires: log into watch.dropout.tv + pick a profile in Firefox"
+	@echo ""; echo "$(BOLD)Image:$(RESET)"
+	@echo "  $(GREEN)make pull$(RESET)    Pull latest image from GHCR"
+	@echo "  $(GREEN)make build$(RESET)   Build local image from source"
+	@echo "  $(GREEN)make clean$(RESET)   Remove local image"
+	@echo ""; echo "$(BOLD)Variables:$(RESET)"
+	@echo "  $(CYAN)IMAGE$(RESET)    = $(IMAGE)"
+	@echo "  $(CYAN)QUALITY$(RESET)  = $(QUALITY)  (360p 480p 720p 1080p)"
+	@echo "  $(CYAN)OUT$(RESET)      = $(OUT)"
+	@echo "  $(CYAN)LOGIN$(RESET)    = $(LOGIN)"
+	@echo "  $(CYAN)SESSION$(RESET)  = $(SESSION)  (auto-read as COOKIE when present)"
+	@echo "  $(CYAN)PREFIX$(RESET)   = $(if $(PREFIX),$(PREFIX),(unset))  set to 1 to prefix filenames with S##E##"
+	@echo ""; echo "$(BOLD)Example workflow:$(RESET)"
+	@echo "  make list-shows"
+	@echo "  make list-seasons  SHOW=crowd-control"
+	@echo "  make list-episodes SHOW=crowd-control SEASON=2"
+	@echo "  make episode       SHOW=crowd-control SEASON=2 EPISODE=3"
+	@echo "  make episode       SHOW=crowd-control SEASON=2 EPISODE=3 PREFIX=1"
+	@echo "  make season        SHOW=crowd-control SEASON=2 QUALITY=1080p"; echo
 
 pull:
-	@printf "$(BLUE)>>$(RESET) Pulling $(CYAN)$(IMAGE)$(RESET)...\n"
+	@echo "$(BLUE)>>$(RESET) Pulling $(CYAN)$(IMAGE)$(RESET)..."
 	@docker pull $(IMAGE)
-	@printf "$(GREEN)✓$(RESET) Done\n"
+	@echo "$(GREEN)✓$(RESET) Done"
 
 build:
-	@printf "$(BLUE)>>$(RESET) Building local image...\n"
+	@echo "$(BLUE)>>$(RESET) Building local image..."
 	@docker build -t dropout-dl:local .
-	@printf "$(GREEN)✓$(RESET) Built $(CYAN)dropout-dl:local$(RESET)\n"
+	@echo "$(GREEN)✓$(RESET) Built $(CYAN)dropout-dl:local$(RESET)"
 
 clean:
-	@printf "$(RED)>>$(RESET) Removing $(CYAN)dropout-dl:local$(RESET)...\n"
+	@echo "$(RED)>>$(RESET) Removing $(CYAN)dropout-dl:local$(RESET)..."
 	@docker rmi dropout-dl:local 2>/dev/null || true
-	@printf "$(GREEN)✓$(RESET) Done\n"
+	@echo "$(GREEN)✓$(RESET) Done"
 
 get-session:
 	@if [ -z "$(FIREFOX_PROFILE)" ]; then \
-		printf "$(RED)✗$(RESET) No Firefox profile found. Set $(CYAN)FIREFOX_PROFILE$(RESET)=<path>\n"; exit 1; \
+		echo "$(RED)✗$(RESET) No Firefox profile found. Set $(CYAN)FIREFOX_PROFILE$(RESET)=<path>"; exit 1; \
 	fi
-	@printf "$(BLUE)>>$(RESET) Reading _session cookie from Firefox profile...\n"
+	@echo "$(BLUE)>>$(RESET) Reading _session cookie from Firefox profile..."
 	@tmp=$$(mktemp /tmp/cookies.XXXXXX.sqlite); \
 	cp "$(FIREFOX_PROFILE)/cookies.sqlite" "$$tmp"; \
 	val=$$(sqlite3 "$$tmp" \
 		"SELECT value FROM moz_cookies WHERE host LIKE '%dropout.tv%' AND name='_session' LIMIT 1;"); \
 	rm -f "$$tmp"; \
 	if [ -z "$$val" ]; then \
-		printf "$(RED)✗$(RESET) No _session cookie found — log into watch.dropout.tv and pick a profile in Firefox first\n"; exit 1; \
+		echo "$(RED)✗$(RESET) No _session cookie found — log into watch.dropout.tv and pick a profile in Firefox first"; exit 1; \
 	fi; \
 	printf "$$val" > "$(SESSION)"; \
-	printf "$(GREEN)✓$(RESET) Session saved to $(CYAN)$(SESSION)$(RESET)\n"
+	echo "$(GREEN)✓$(RESET) Session saved to $(CYAN)$(SESSION)$(RESET)"
 
 episode:
 ifndef SHOW
-	@printf "$(RED)✗$(RESET) SHOW required: $(YELLOW)make episode SHOW=crowd-control SEASON=2 EPISODE=<n|slug>$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SHOW required: $(YELLOW)make episode SHOW=crowd-control SEASON=2 EPISODE=<n|slug>$(RESET)" && exit 1
 endif
 ifndef SEASON
-	@printf "$(RED)✗$(RESET) SEASON required: $(YELLOW)make episode SHOW=$(SHOW) SEASON=<n> EPISODE=<n|slug>$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SEASON required: $(YELLOW)make episode SHOW=$(SHOW) SEASON=<n> EPISODE=<n|slug>$(RESET)" && exit 1
 endif
 ifndef EPISODE
-	@printf "$(RED)✗$(RESET) EPISODE required: $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET) to browse\n" && exit 1
+	@echo "$(RED)✗$(RESET) EPISODE required: $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET) to browse" && exit 1
 endif
 	@if echo "$(EPISODE)" | grep -qE '^[0-9]+$$'; then \
 		slug=$$($(_LIST) --list -s "$(_SEASON_URL)" \
 			| sed -n '$(EPISODE)p' | awk -F'\t' '{print $$2}' | sed 's|.*/||'); \
 		if [ -z "$$slug" ]; then \
-			printf "$(RED)✗$(RESET) Episode $(EPISODE) not found in season — run $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET)\n"; exit 1; \
+			echo "$(RED)✗$(RESET) Episode $(EPISODE) not found in season — run $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET)"; exit 1; \
 		fi; \
-		printf "$(BLUE)>>$(RESET) Downloading $(CYAN)$(BASE)/$(SHOW)/season:$(SEASON)/videos/$$slug$(RESET)\n"; \
-		printf "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)\n\n"; \
+		echo "$(BLUE)>>$(RESET) Downloading $(CYAN)$(BASE)/$(SHOW)/season:$(SEASON)/videos/$$slug$(RESET)"; \
+		echo "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)"; echo; \
 		if [ -n "$(PREFIX)" ]; then \
 			spads=$$(printf '%02d' $(SEASON)); epads=$$(printf '%02d' $(EPISODE)); \
 			pfx="S$${spads}E$${epads}_"; outdir="$(OUT)"; \
@@ -142,8 +142,8 @@ endif
 		fi; \
 	else \
 		slug=$(EPISODE); \
-		printf "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_EPISODE_URL)$(RESET)\n"; \
-		printf "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)\n\n"; \
+		echo "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_EPISODE_URL)$(RESET)"; \
+		echo "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)"; echo; \
 		if [ -n "$(PREFIX)" ]; then \
 			epnum=$$($(_LIST) --list -s "$(_SEASON_URL)" 2>/dev/null \
 				| awk -F'\t' '{print $$2}' | sed 's|.*/||' \
@@ -162,33 +162,33 @@ endif
 
 season:
 ifndef SHOW
-	@printf "$(RED)✗$(RESET) SHOW required: $(YELLOW)make season SHOW=crowd-control SEASON=2$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SHOW required: $(YELLOW)make season SHOW=crowd-control SEASON=2$(RESET)" && exit 1
 endif
 ifndef SEASON
-	@printf "$(RED)✗$(RESET) SEASON required: $(YELLOW)make season SHOW=$(SHOW) SEASON=<n>$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SEASON required: $(YELLOW)make season SHOW=$(SHOW) SEASON=<n>$(RESET)" && exit 1
 endif
-	@printf "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_SEASON_URL)$(RESET)\n"
-	@printf "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)\n\n"
+	@echo "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_SEASON_URL)$(RESET)"
+	@echo "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)"; echo
 	@$(_RUN) -s "$(_SEASON_URL)"
 
 series:
 ifndef SHOW
-	@printf "$(RED)✗$(RESET) SHOW required: $(YELLOW)make series SHOW=crowd-control$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SHOW required: $(YELLOW)make series SHOW=crowd-control$(RESET)" && exit 1
 endif
-	@printf "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_SHOW_URL)$(RESET)\n"
-	@printf "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)\n\n"
+	@echo "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_SHOW_URL)$(RESET)"
+	@echo "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)"; echo
 	@$(_RUN) -S "$(_SHOW_URL)"
 
 sync:
-	@printf "$(BLUE)>>$(RESET) Syncing overlay from $(shell git remote get-url fork 2>/dev/null && echo fork || echo origin)...\n"
+	@echo "$(BLUE)>>$(RESET) Syncing overlay from $(shell git remote get-url fork 2>/dev/null && echo fork || echo origin)..."
 	@remote=$$(git remote get-url fork 2>/dev/null && echo fork || echo origin); \
 	 git fetch $$remote; \
 	 git checkout overlay 2>/dev/null || git checkout -b overlay $$remote/overlay; \
 	 git rebase $$remote/overlay
-	@printf "$(GREEN)✓$(RESET) Up to date\n"
+	@echo "$(GREEN)✓$(RESET) Up to date"
 
 sync-upstream:
-	@printf "$(BLUE)>>$(RESET) Pulling upstream (mosswg) into main, rebasing overlay...\n"
+	@echo "$(BLUE)>>$(RESET) Pulling upstream (mosswg) into main, rebasing overlay..."
 	@git remote get-url upstream 2>/dev/null || git remote add upstream $(UPSTREAM)
 	@git fetch upstream
 	@git checkout main
@@ -197,10 +197,10 @@ sync-upstream:
 	@git checkout overlay
 	@git rebase main
 	@git push origin overlay
-	@printf "$(GREEN)✓$(RESET) main and overlay synced with upstream\n"
+	@echo "$(GREEN)✓$(RESET) main and overlay synced with upstream"
 
 list-shows:
-	@printf "$(BLUE)>>$(RESET) Shows on dropout.tv\n\n"
+	@echo "$(BLUE)>>$(RESET) Shows on dropout.tv"; echo
 	@curl -s "https://watch.dropout.tv/sitemap.xml" \
 		| grep -o '<loc>[^<]*</loc>' \
 		| sed 's|<loc>https://watch.dropout.tv/||;s|</loc>||' \
@@ -213,17 +213,17 @@ list-shows:
 
 list-seasons:
 ifndef SHOW
-	@printf "$(RED)✗$(RESET) SHOW required: $(YELLOW)make list-seasons SHOW=crowd-control$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SHOW required: $(YELLOW)make list-seasons SHOW=crowd-control$(RESET)" && exit 1
 endif
-	@printf "$(BLUE)>>$(RESET) Seasons in $(CYAN)$(SHOW)$(RESET)\n\n"
+	@echo "$(BLUE)>>$(RESET) Seasons in $(CYAN)$(SHOW)$(RESET)"; echo
 	@$(_LIST) --list -S "$(_SHOW_URL)" 2>/dev/null | awk -F'\t' '{printf "%-40s %s\n", $$1, $$2}'
 
 list-episodes:
 ifndef SHOW
-	@printf "$(RED)✗$(RESET) SHOW required: $(YELLOW)make list-episodes SHOW=crowd-control SEASON=2$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SHOW required: $(YELLOW)make list-episodes SHOW=crowd-control SEASON=2$(RESET)" && exit 1
 endif
 ifndef SEASON
-	@printf "$(RED)✗$(RESET) SEASON required: $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=<n>$(RESET)\n" && exit 1
+	@echo "$(RED)✗$(RESET) SEASON required: $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=<n>$(RESET)" && exit 1
 endif
-	@printf "$(BLUE)>>$(RESET) Episodes in $(CYAN)$(SHOW)$(RESET) season $(CYAN)$(SEASON)$(RESET)\n\n"
+	@echo "$(BLUE)>>$(RESET) Episodes in $(CYAN)$(SHOW)$(RESET) season $(CYAN)$(SEASON)$(RESET)"; echo
 	@$(_LIST) --list -s "$(_SEASON_URL)" 2>/dev/null | awk -F'\t' '{printf "%-55s %s\n", $$1, $$2}'
