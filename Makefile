@@ -28,7 +28,7 @@ _EPISODE_URL = $(BASE)/$(SHOW)/season:$(SEASON)/videos/$(EPISODE)
 # If COOKIE is set, use --force-cookies instead of the login file
 _COOKIE_FLAG = $(if $(COOKIE),--force-cookies $(COOKIE),)
 
-_RUN = $(DOCKER) run --rm -it \
+_RUN = mkdir -p $(OUT) && $(DOCKER) run --rm -it \
 	$(if $(COOKIE),,\-v $(LOGIN):/app/login) \
 	-v $(OUT):/Downloads \
 	$(IMAGE) \
