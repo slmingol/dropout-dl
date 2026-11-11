@@ -108,7 +108,7 @@ get-session:
 	if [ -z "$$val" ]; then \
 		echo "$(RED)✗$(RESET) No _session cookie found — log into watch.dropout.tv and pick a profile in Firefox first"; exit 1; \
 	fi; \
-	printf "$$val" > "$(SESSION)"; \
+	printf '%s' "$$val" > "$(SESSION)"; \
 	echo "$(GREEN)✓$(RESET) Session saved to $(CYAN)$(SESSION)$(RESET)"
 
 episode:
