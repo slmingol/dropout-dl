@@ -33,8 +33,9 @@ _RUN = docker run --rm -it \
 	--quality $(QUALITY)
 
 _LIST = docker run --rm -i \
-	-v $(LOGIN):/app/login \
-	$(IMAGE)
+	$(if $(COOKIE),,\-v $(LOGIN):/app/login) \
+	$(IMAGE) \
+	$(_COOKIE_FLAG)
 
 UPSTREAM ?= https://github.com/mosswg/dropout-dl
 
@@ -97,7 +98,7 @@ ifndef EPISODE
 	@printf "$(RED)✗$(RESET) EPISODE required: $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET) to browse\n" && exit 1
 endif
 	@if echo "$(EPISODE)" | grep -qE '^[0-9]+$$'; then \
-		slug=$$(docker run --rm -i -v $(LOGIN):/app/login $(IMAGE) --list -s "$(_SEASON_URL)" \
+		slug=$$($(_LIST) --list -s "$(_SEASON_URL)" \
 			| sed -n '$(EPISODE)p' | awk -F'\t' '{print $$2}' | sed 's|.*/||'); \
 		if [ -z "$$slug" ]; then \
 			printf "$(RED)✗$(RESET) Episode $(EPISODE) not found in season — run $(YELLOW)make list-episodes SHOW=$(SHOW) SEASON=$(SEASON)$(RESET)\n"; exit 1; \
@@ -120,7 +121,7 @@ endif
 		printf "$(BLUE)>>$(RESET) Downloading $(CYAN)$(_EPISODE_URL)$(RESET)\n"; \
 		printf "$(BLUE)>>$(RESET) Quality: $(YELLOW)$(QUALITY)$(RESET)  Output: $(YELLOW)$(OUT)$(RESET)\n\n"; \
 		if [ -n "$(PREFIX)" ]; then \
-			epnum=$$(docker run --rm -i -v $(LOGIN):/app/login $(IMAGE) --list -s "$(_SEASON_URL)" 2>/dev/null \
+			epnum=$$($(_LIST) --list -s "$(_SEASON_URL)" 2>/dev/null \
 				| awk -F'\t' '{print $$2}' | sed 's|.*/||' \
 				| awk "/^$$slug$$/{print NR; exit}"); \
 			spads=$$(printf '%02d' $(SEASON)); epads=$$(printf '%02d' $${epnum:-0}); \
