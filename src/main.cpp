@@ -93,7 +93,7 @@ namespace dropout_dl {
 						std::cerr << "ARGUMENT PARSE ERROR: --force-cookies used with too few following arguments\n";
 						exit(8);
 					}
-					session_cookie = cookie(args[++i]);
+					session_cookie = cookie("_session", args[++i]);
 					force_cookies = true;
 				}
 				else if (arg == "output" || arg == "o") {

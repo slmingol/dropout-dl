@@ -33,5 +33,7 @@ namespace dropout_dl {
 		 * Login with the provided tokens and change session token.
 		 */
 		bool login_with_tokens(const std::string& email, const std::string& password, std::string& session, const std::string& cf_bm, const std::string& authentication_token);
+
+		void select_profile(std::string& session);
 	}
 }

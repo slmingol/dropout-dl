@@ -12,6 +12,7 @@ QUALITY ?= 720p
 OUT     ?= $(PWD)/out
 LOGIN   ?= $(PWD)/login
 PREFIX  ?=
+COOKIE  ?=
 
 BASE    := https://watch.dropout.tv
 
@@ -19,10 +20,14 @@ _SHOW_URL    = $(BASE)/$(SHOW)
 _SEASON_URL  = $(BASE)/$(SHOW)/season:$(SEASON)
 _EPISODE_URL = $(BASE)/$(SHOW)/season:$(SEASON)/videos/$(EPISODE)
 
+# If COOKIE is set, use --force-cookies instead of the login file
+_COOKIE_FLAG = $(if $(COOKIE),--force-cookies $(COOKIE),)
+
 _RUN = docker run --rm -it \
-	-v $(LOGIN):/app/login \
+	$(if $(COOKIE),,\-v $(LOGIN):/app/login) \
 	-v $(OUT):/Downloads \
 	$(IMAGE) \
+	$(_COOKIE_FLAG) \
 	--output-directory /Downloads \
 	--captions \
 	--quality $(QUALITY)

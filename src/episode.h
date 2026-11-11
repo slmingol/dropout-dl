@@ -328,7 +328,9 @@ namespace dropout_dl {
 				std::cout << "Got embedded url: " << this->embedded_url << '\n';
 			}
 
-			this->embedded_page_data = get_generic_page(this->embedded_url, this->episode_url);
+			this->embedded_page_data = get_generic_page(this->embedded_url, this->episode_url,
+			                                             nullptr, false, nullptr,
+			                                             "_session=" + session_cookie.value);
 
 			if (this->embedded_page_data.find("you are not authorized") != std::string::npos) {
 				std::cerr << "ERROR: Could not access video. Try refreshing cookies.\n";
@@ -411,7 +413,16 @@ namespace dropout_dl {
 			}
 
 			if (name == "ERROR") {
-				std::cerr << "EPISODE ERROR: Could not find episode name. Plesae ensure the episode URL is valid.\n";
+				if (metadata.contains("PROPERTIES") &&
+				    metadata["PROPERTIES"].contains("VIEW_TYPE") &&
+				    metadata["PROPERTIES"]["VIEW_TYPE"] == "browse") {
+					std::cerr << RED << "EPISODE ERROR: Dropout requires profile selection.\n"
+					             "  Log in at watch.dropout.tv in a browser, pick a profile,\n"
+					             "  copy the _session cookie from DevTools, then run:\n"
+					             "    dropout-dl --force-cookies <session_value> <episode_url>\n" << RESET;
+				} else {
+					std::cerr << "EPISODE ERROR: Could not find episode name. Please ensure the episode URL is valid.\n";
+				}
 				exit(6);
 			}
 
@@ -441,7 +452,9 @@ namespace dropout_dl {
 				std::cout << "Got embedded url: " << this->embedded_url << '\n';
 			}
 
-			this->embedded_page_data = get_generic_page(this->embedded_url, this->episode_url);
+			this->embedded_page_data = get_generic_page(this->embedded_url, this->episode_url,
+			                                             nullptr, false, nullptr,
+			                                             "_session=" + session_cookie.value);
 
 			if (this->embedded_page_data.find("you are not authorized") != std::string::npos) {
 				std::cerr << "ERROR: Could not access video. Try refreshing cookies.\n";

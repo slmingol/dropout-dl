@@ -1,4 +1,5 @@
 #include "login.h"
+#include <algorithm>
 
 
 void dropout_dl::login::get_cookies(std::string& session, const std::string& login_file) {
@@ -70,6 +71,8 @@ void dropout_dl::login::get_cookies(std::string& session, const std::string& log
 		std::cerr << RED << "ERROR: Could not login. Check your login. If you are certain your information is correct please report this issue.\n";
 		exit(1);
 	}
+
+	select_profile(session);
 
 	std::cerr << GREEN << "Successfully logged in.\n" << RESET;
 
@@ -183,4 +186,60 @@ bool dropout_dl::login::login_with_tokens(const std::string& email, const std::s
 
 	/// 302 is returned on sucessful login otherwise 200.
 	return http_response_code == 302;
+}
+
+static std::string fetch_with_cookie(const std::string& url, const std::string& cookie_str, std::string* headers_out = nullptr) {
+	using dropout_dl::WriteCallback;
+	std::string data;
+	std::string headers;
+	struct curl_slist* slist = nullptr;
+	slist = curl_slist_append(slist, "Accept: text/html");
+	slist = curl_slist_append(slist, "Connection: keep-alive");
+	CURL* hnd = curl_easy_init();
+	curl_easy_setopt(hnd, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist);
+	curl_easy_setopt(hnd, CURLOPT_COOKIE, cookie_str.c_str());
+	curl_easy_setopt(hnd, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(hnd, CURLOPT_MAXREDIRS, 10L);
+	curl_easy_setopt(hnd, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_2TLS);
+	curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
+	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, WriteCallback);
+	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &data);
+	curl_easy_setopt(hnd, CURLOPT_HEADERFUNCTION, WriteCallback);
+	curl_easy_setopt(hnd, CURLOPT_HEADERDATA, &headers);
+	curl_easy_perform(hnd);
+	curl_easy_cleanup(hnd);
+	curl_slist_free_all(slist);
+	if (headers_out) *headers_out = headers;
+	return data;
+}
+
+void dropout_dl::login::select_profile(std::string& session) {
+	std::string cookie_str = "locale_det=en; _session=" + session + ";";
+
+	// Fetch profile/pick page — it shows available profiles when logged in
+	std::string page_data = fetch_with_cookie("https://watch.dropout.tv/profile/pick", cookie_str);
+
+	// Look for /profile/<numeric_id>/switch link (Vimeo OTT pattern)
+	std::string switch_prefix = "/profile/";
+	std::string switch_suffix = "/switch";
+	size_t pos = 0;
+	while ((pos = page_data.find(switch_prefix, pos)) != std::string::npos) {
+		size_t id_start = pos + switch_prefix.size();
+		size_t id_end = page_data.find(switch_suffix, id_start);
+		if (id_end != std::string::npos) {
+			std::string profile_id = page_data.substr(id_start, id_end - id_start);
+			bool all_digits = !profile_id.empty() && std::all_of(profile_id.begin(), profile_id.end(), ::isdigit);
+			if (all_digits) {
+				std::string switch_url = "https://watch.dropout.tv/profile/" + profile_id + "/switch";
+				std::string switch_headers;
+				fetch_with_cookie(switch_url, cookie_str, &switch_headers);
+				if (switch_headers.find("set-cookie: _session=") != std::string::npos) {
+					session = get_substring_in(switch_headers, "set-cookie: _session=", ";");
+				}
+				return;
+			}
+		}
+		pos++;
+	}
 }

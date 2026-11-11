@@ -226,7 +226,7 @@ namespace dropout_dl {
 	}
 
 
-	std::string get_generic_page(const std::string& url, const std::string& referer, long* response_status, bool verbose, std::string* header_string) {
+	std::string get_generic_page(const std::string& url, const std::string& referer, long* response_status, bool verbose, std::string* header_string, const std::string& cookie) {
 		CURL *hnd;
 		struct curl_slist *slist1;
 
@@ -245,6 +245,10 @@ namespace dropout_dl {
 		slist1 = curl_slist_append(slist1, "Sec-Fetch-Site: cross-site");
 		slist1 = curl_slist_append(slist1, "Sec-GPC: 1");
 
+		if (!cookie.empty()) {
+			slist1 = curl_slist_append(slist1, ("Cookie: " + cookie).c_str());
+		}
+
 		hnd = curl_easy_init();
 		curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
 		curl_easy_setopt(hnd, CURLOPT_URL, url.c_str());
@@ -258,7 +262,6 @@ namespace dropout_dl {
 
 		curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &page_data);
-
 
 		if (header_string) {
 			curl_easy_setopt(hnd, CURLOPT_HEADERFUNCTION, WriteCallback);
