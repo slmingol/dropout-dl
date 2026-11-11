@@ -11,8 +11,12 @@ IMAGE   ?= ghcr.io/slmingol/dropout-dl:overlay
 QUALITY ?= 720p
 OUT     ?= $(PWD)/out
 LOGIN   ?= $(PWD)/login
+SESSION ?= $(PWD)/session
 PREFIX  ?=
-COOKIE  ?=
+COOKIE  ?= $(shell test -f $(SESSION) && cat $(SESSION) || true)
+
+# Default Firefox profile detection (macOS) — pick whichever profile has cookies.sqlite
+FIREFOX_PROFILE ?= $(shell find "$(HOME)/Library/Application Support/Firefox/Profiles" -maxdepth 2 -name "cookies.sqlite" 2>/dev/null | head -1 | sed 's|/[^/]*$$||')
 
 BASE    := https://watch.dropout.tv
 
@@ -39,7 +43,7 @@ _LIST = docker run --rm -i \
 
 UPSTREAM ?= https://github.com/mosswg/dropout-dl
 
-.PHONY: help pull build episode season series list-shows list-seasons list-episodes sync sync-upstream clean
+.PHONY: help pull build episode season series list-shows list-seasons list-episodes sync sync-upstream clean get-session
 
 help:
 	@printf "$(BOLD)$(CYAN)dropout-dl$(RESET) — dropout.tv downloader\n\n"
@@ -54,6 +58,9 @@ help:
 	@printf "\n$(BOLD)Git:$(RESET)\n"
 	@printf "  $(GREEN)make sync$(RESET)             Pull latest from fork\n"
 	@printf "  $(GREEN)make sync-upstream$(RESET)    Pull upstream (mosswg) changes into fork\n"
+	@printf "\n$(BOLD)Session:$(RESET)\n"
+	@printf "  $(GREEN)make get-session$(RESET)   Extract _session cookie from Firefox → saves to $(SESSION)\n"
+	@printf "                     Requires: log into watch.dropout.tv + pick a profile in Firefox\n"
 	@printf "\n$(BOLD)Image:$(RESET)\n"
 	@printf "  $(GREEN)make pull$(RESET)    Pull latest image from GHCR\n"
 	@printf "  $(GREEN)make build$(RESET)   Build local image from source\n"
@@ -63,6 +70,7 @@ help:
 	@printf "  $(CYAN)QUALITY$(RESET)  = $(QUALITY)  (360p 480p 720p 1080p)\n"
 	@printf "  $(CYAN)OUT$(RESET)      = $(OUT)\n"
 	@printf "  $(CYAN)LOGIN$(RESET)    = $(LOGIN)\n"
+	@printf "  $(CYAN)SESSION$(RESET)  = $(SESSION)  (auto-read as COOKIE when present)\n"
 	@printf "  $(CYAN)PREFIX$(RESET)   = $(if $(PREFIX),$(PREFIX),(unset))  set to 1 to prefix filenames with S##E##\n"
 	@printf "\n$(BOLD)Example workflow:$(RESET)\n"
 	@printf "  make list-shows\n"
@@ -86,6 +94,22 @@ clean:
 	@printf "$(RED)>>$(RESET) Removing $(CYAN)dropout-dl:local$(RESET)...\n"
 	@docker rmi dropout-dl:local 2>/dev/null || true
 	@printf "$(GREEN)✓$(RESET) Done\n"
+
+get-session:
+	@if [ -z "$(FIREFOX_PROFILE)" ]; then \
+		printf "$(RED)✗$(RESET) No Firefox profile found. Set $(CYAN)FIREFOX_PROFILE$(RESET)=<path>\n"; exit 1; \
+	fi
+	@printf "$(BLUE)>>$(RESET) Reading _session cookie from Firefox profile...\n"
+	@tmp=$$(mktemp /tmp/cookies.XXXXXX.sqlite); \
+	cp "$(FIREFOX_PROFILE)/cookies.sqlite" "$$tmp"; \
+	val=$$(sqlite3 "$$tmp" \
+		"SELECT value FROM moz_cookies WHERE host LIKE '%dropout.tv%' AND name='_session' LIMIT 1;"); \
+	rm -f "$$tmp"; \
+	if [ -z "$$val" ]; then \
+		printf "$(RED)✗$(RESET) No _session cookie found — log into watch.dropout.tv and pick a profile in Firefox first\n"; exit 1; \
+	fi; \
+	printf "$$val" > "$(SESSION)"; \
+	printf "$(GREEN)✓$(RESET) Session saved to $(CYAN)$(SESSION)$(RESET)\n"
 
 episode:
 ifndef SHOW
